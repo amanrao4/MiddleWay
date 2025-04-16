@@ -11,7 +11,8 @@ const Header = () => {
 
     const logoutHandler = () => {
         localStorage.removeItem('userInfo');
-        navigate('/login');
+        navigate('/');
+        window.location.reload();
     };
 
     return (
