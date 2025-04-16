@@ -1,30 +1,38 @@
 const Meetup = require("../models/meetupModel");
+const asyncHandler = require('express-async-handler');
+const User = require('../models/userModel'); 
+
 
 // @desc    Create a new meetup
 // @route   POST /api/meetups
 // @access  Private
-const createMeetup = async (req, res) => {
-  try {
-    const { title, description, location, scheduledDate, participants } =
-      req.body;
+const createMeetup = asyncHandler(async (req, res) => {
+  const { title, description, location, scheduledDate, participants } = req.body;
 
-    const meetup = await Meetup.create({
-      creator: req.user._id,
-      title,
-      description,
-      location,
-      scheduledDate,
-      participants: participants
-        ? participants.map((p) => ({ user: p, status: "pending" }))
-        : [],
-    });
+  // Find user IDs for all participant emails
+  const resolvedParticipants = await Promise.all(
+    participants.map(async (email) => {
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Error(`User with email ${email} not found`);
+      }
+      return { user: user._id };
+    })
+  );
 
-    res.status(201).json(meetup);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error" });
-  }
-};
+  const meetup = new Meetup({
+    title,
+    description,
+    location,
+    scheduledDate,
+    participants: resolvedParticipants,
+    creator: req.user._id,
+  });
+
+  const created = await meetup.save();
+  res.status(201).json(created);
+});
+
 
 // @desc    Get all meetups
 // @route   GET /api/meetups
