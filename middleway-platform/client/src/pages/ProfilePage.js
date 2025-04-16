@@ -21,18 +21,34 @@ const ProfilePage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
 
-    useEffect(() => {
-        if (!userInfo) {
-            navigate('/login');
-            return;
-        }
+   useEffect(() => {
+  if (!userInfo) {
+    navigate('/login');
+    return;
+  }
 
-        setName(userInfo.name || '');
-        setEmail(userInfo.email || '');
-        setLocation(userInfo.location || '');
-        setPreferredDistance(userInfo.preferredDistance || 5);
-        setPreferences(userInfo.preferences ? userInfo.preferences.join(', ') : '');
-    }, [navigate, userInfo]);
+  setName(userInfo.name || '');
+  setEmail(userInfo.email || '');
+  setLocation(userInfo.location || '');
+  setPreferredDistance(userInfo.preferredDistance || 5);
+  setPreferences(userInfo.preferences ? userInfo.preferences.join(', ') : '');
+
+  // If userInfo has a location, we should try to geocode it to update the map
+  if (userInfo.location && userInfo.location.trim() !== '') {
+    // Geocode the location to get coordinates
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(userInfo.location)}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          setCoordinates({
+            lat: parseFloat(data[0].lat),
+            lng: parseFloat(data[0].lon)
+          });
+        }
+      })
+      .catch(error => console.error('Error geocoding location:', error));
+  }
+}, [navigate, userInfo]);
 
     useEffect(() => {
         if (searchQuery.trim() === '') {
