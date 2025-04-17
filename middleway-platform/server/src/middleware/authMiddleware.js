@@ -39,7 +39,7 @@ const adminOnly = (req, res, next) => {
 };
 
 
-const moderator = (req, res, next) => {
+const moderatorOnly = (req, res, next) => {
   if (
     req.user &&
     (req.user.role === "moderator" || req.user.role === "admin")
@@ -53,5 +53,6 @@ const moderator = (req, res, next) => {
 module.exports = {
   protect,
   adminOnly,
+  moderatorOnly,
 };
 
