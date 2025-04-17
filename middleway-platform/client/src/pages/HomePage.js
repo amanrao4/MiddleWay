@@ -13,6 +13,17 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [expandedMeetupId, setExpandedMeetupId] = useState(null);
 
+  const restaurantOptions = [
+    "Central Bites Cafe",
+    "Flour Bakery",
+    "Tatte Bakery",
+    "City Grille",
+    "Sunset Diner",
+    "Back Bay Bites",
+    "Common Grounds Cafe"
+  ];
+  
+
   useEffect(() => {
     const fetchMeetups = async () => {
       try {
@@ -77,6 +88,8 @@ const HomePage = () => {
                 {meetups.map((meetup) => {
                   const isExpanded = expandedMeetupId === meetup._id;
                   console.log("Participants:", meetup.participants);
+                  const randomRestaurant =
+    restaurantOptions[Math.floor(Math.random() * restaurantOptions.length)];
 
                   return (
                     <Col
@@ -92,6 +105,9 @@ const HomePage = () => {
                           <Card.Subtitle className="mb-2 text-muted">
                             {new Date(meetup.scheduledDate).toLocaleString()}
                           </Card.Subtitle>
+                          <Card.Text>
+            <strong>Suggested Restaurant:</strong> {randomRestaurant}
+          </Card.Text>
                           <Card.Text>
                             <strong>Location:</strong> {meetup.location.name}
                           </Card.Text>
