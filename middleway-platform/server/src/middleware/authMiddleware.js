@@ -30,13 +30,14 @@ const protect = async (req, res, next) => {
   }
 };
 
-const admin = (req, res, next) => {
+const adminOnly = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
   } else {
-    res.status(401).json({ message: "Not authorized as an admin" });
+    res.status(403).json({ message: "Access denied: Admins only" });
   }
 };
+
 
 const moderator = (req, res, next) => {
   if (
@@ -49,4 +50,8 @@ const moderator = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin, moderator };
+module.exports = {
+  protect,
+  adminOnly,
+};
+

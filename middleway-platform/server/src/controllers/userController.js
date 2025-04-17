@@ -2,11 +2,12 @@ const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
 // Generate JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
     expiresIn: "30d",
   });
 };
+
 
 // @desc    Register a new user
 // @route   POST /api/users
@@ -38,7 +39,7 @@ const registerUser = async (req, res) => {
         location: user.location,
         preferredDistance: user.preferredDistance,
         preferences: user.preferences,
-        token: generateToken(user._id),
+        token: generateToken(user._id, user.role),
       });
     } else {
       res.status(400).json({ message: "Invalid user data" });
@@ -68,7 +69,7 @@ const loginUser = async (req, res) => {
         location: user.location,
         preferredDistance: user.preferredDistance,
         preferences: user.preferences,
-        token: generateToken(user._id),
+        token: generateToken(user._id, user.role),
       });
     } else {
       res.status(401).json({ message: "Invalid email or password" });
@@ -172,6 +173,27 @@ const getUsersByIds = async (req, res) => {
     res.status(500).json({ message: "Error fetching users." });
   }
 };
+const getAllUsersForAdmin = async (req, res) => {
+  try {
+    const users = await User.find({}).select("-password"); // hide password
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load users" });
+  }
+};
+const promoteUser = async (req, res) => {
+  const { role } = req.body;
+  const user = await User.findById(req.params.id);
+
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  user.role = role;
+  await user.save();
+
+  res.json({ message: `Promoted ${user.name} to ${role}` });
+};
+
+
 
 
 module.exports = {
@@ -180,5 +202,7 @@ module.exports = {
   getUserProfile,
   updateUserProfile,
   getAllUsers, 
-  getUsersByIds
+  getUsersByIds,
+  getAllUsersForAdmin,
+  promoteUser,
 };
