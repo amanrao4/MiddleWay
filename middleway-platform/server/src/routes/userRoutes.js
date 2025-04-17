@@ -6,15 +6,20 @@ const {
   getUserProfile,
   updateUserProfile,
   getAllUsers,
+  getUsersByIds,
+  promoteUser,
+  getAllUsersForAdmin 
 } = require("../controllers/userController");
-const { getUsersByIds } = require("../controllers/userController");
-const { protect, admin } = require("../middleware/authMiddleware");
+
+const { protect, adminOnly } = require("../middleware/authMiddleware");
 
 // Public routes
 router.post("/", registerUser);
 router.post("/login", loginUser);
 router.get("/all", protect, getAllUsers);
 router.post("/lookup", protect, getUsersByIds);
+router.get("/admin/all-users", protect, adminOnly, getAllUsersForAdmin);
+router.put("/promote/:id", protect, adminOnly, promoteUser);
 
 
 // Protected routes
