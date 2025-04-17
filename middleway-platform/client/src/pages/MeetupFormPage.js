@@ -1,9 +1,17 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import Map from "../components/Map";
+
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+}
 
 const MeetupFormPage = () => {
   const { userInfo } = useContext(AuthContext);
@@ -36,29 +44,28 @@ const MeetupFormPage = () => {
       return;
     }
 
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-    try{
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'MiddleWayApp/1.0 (your@email.com)',
-        }
-      });
-      
-    const data = await res.json();
+    const url = `${process.env.REACT_APP_API_URL}/map/search?q=${encodeURIComponent(query)}`;
 
-    const suggestions = data.map((item) => ({
-      name: item.display_name,
-      coordinates: {
-        lat: parseFloat(item.lat),
-        lng: parseFloat(item.lon),
-      },
-    }));
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
 
-    setSuggestions(suggestions);
-  } catch (err) {
-    console.error("Failed to fetch suggestions", err);
-  }
+      const suggestions = data.map((item) => ({
+        name: item.display_name,
+        coordinates: {
+          lat: parseFloat(item.lat),
+          lng: parseFloat(item.lon),
+        },
+      }));
+
+      setSuggestions(suggestions);
+    } catch (err) {
+      console.error("❌ Failed to fetch suggestions", err);
+      setSuggestions([]); // Optional: clear if it fails
+    }
   };
+
+  const debouncedFetchSuggestions = debounce(fetchSuggestions, 500);
 
   const handleSelectAddress1 = (suggestion) => {
     setAddress1(suggestion.name);
@@ -88,7 +95,6 @@ const MeetupFormPage = () => {
       address: `${address1} ↔ ${address2}`,
       coordinates: midpoint,
     });
-    
   };
 
   const submitHandler = async (e) => {
@@ -195,8 +201,13 @@ const MeetupFormPage = () => {
               placeholder="Enter address for user 1"
               value={address1}
               onChange={(e) => {
-                setAddress1(e.target.value);
-                fetchSuggestions(e.target.value, setAddress1Suggestions);
+                const val = e.target.value;
+                setAddress1(val);
+                if (val.length >= 10) {
+                  debouncedFetchSuggestions(val, setAddress1Suggestions);
+                } else {
+                  setAddress1Suggestions([]);
+                }
               }}
             />
             {address1Suggestions.length > 0 && (
@@ -225,8 +236,13 @@ const MeetupFormPage = () => {
               placeholder="Enter address for user 2"
               value={address2}
               onChange={(e) => {
-                setAddress2(e.target.value);
-                fetchSuggestions(e.target.value, setAddress2Suggestions);
+                const val = e.target.value;
+                setAddress2(val);
+                if (val.length >= 10) {
+                  debouncedFetchSuggestions(val, setAddress2Suggestions);
+                } else {
+                  setAddress2Suggestions([]);
+                }
               }}
             />
             {address2Suggestions.length > 0 && (
