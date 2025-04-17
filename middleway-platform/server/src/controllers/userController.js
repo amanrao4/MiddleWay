@@ -147,10 +147,38 @@ const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+// @desc    Get all users except the current user
+// @route   GET /api/users/all
+// @access  Private
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user._id } }).select("name email location");
+    res.json(users);
+  } catch (error) {
+    console.error("Error fetching users", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+// @desc Get multiple users by ID
+// @route POST /api/users/lookup
+// @access Private
+const getUsersByIds = async (req, res) => {
+  const { userIds } = req.body;
+
+  try {
+    const users = await User.find({ _id: { $in: userIds } }).select("name email location");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching users." });
+  }
+};
+
 
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
   updateUserProfile,
+  getAllUsers, 
+  getUsersByIds
 };
