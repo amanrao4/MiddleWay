@@ -11,6 +11,8 @@ const HomePage = () => {
   const [meetups, setMeetups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [expandedMeetupId, setExpandedMeetupId] = useState(null);
+
 
   useEffect(() => {
     const fetchMeetups = async () => {
@@ -75,25 +77,56 @@ const HomePage = () => {
             ) : meetups.length === 0 ? (
               <p>No meetups found. Create your first meetup!</p>
             ) : (
-              meetups.map((meetup) => (
-                <Col key={meetup._id} sm={12} md={6} lg={4} className="mb-4">
-                  <Card>
-                    <Card.Body>
-                      <Card.Title>{meetup.title}</Card.Title>
-                      <Card.Subtitle className="mb-2 text-muted">
-                        {new Date(meetup.scheduledDate).toLocaleDateString()}
-                      </Card.Subtitle>
-                      <Card.Text>{meetup.description}</Card.Text>
-                      <Card.Text>
-                        <strong>Location:</strong> {meetup.location.name}
-                      </Card.Text>
-                      <Link to={`/meetup/${meetup._id}`}>
-                        <Button variant="outline-primary">View Details</Button>
-                      </Link>
-                    </Card.Body>
-                  </Card>
-                </Col>
-              ))
+              <>
+              {meetups.map((meetup) => {
+                const isExpanded = expandedMeetupId === meetup._id;
+              
+                return (
+                  <Col key={meetup._id} sm={12} md={6} lg={4} className="mb-4">
+                    <Card>
+                      <Card.Body>
+                        <Card.Title>{meetup.title}</Card.Title>
+                        <Card.Subtitle className="mb-2 text-muted">
+                          {new Date(meetup.scheduledDate).toLocaleString()}
+                        </Card.Subtitle>
+                        <Card.Text>
+                          <strong>Location:</strong> {meetup.location.name}
+                        </Card.Text>
+              
+                        <Button
+                          variant="outline-primary"
+                          onClick={() =>
+                            setExpandedMeetupId(isExpanded ? null : meetup._id)
+                          }
+                        >
+                          {isExpanded ? "Hide Details" : "View Details"}
+                        </Button>
+              
+                        {isExpanded && (
+                          <div className="mt-3">
+                            <Card.Text>
+                              <strong>Description:</strong> {meetup.description}
+                            </Card.Text>
+                            <Card.Text>
+                              <strong>Address:</strong> {meetup.location.address}
+                            </Card.Text>
+                            <Card.Text>
+                              <strong>Coordinates:</strong>{" "}
+                              {meetup.location.coordinates.lat.toFixed(4)},{" "}
+                              {meetup.location.coordinates.lng.toFixed(4)}
+                            </Card.Text>
+                            <Card.Text>
+                              <strong>Participants:</strong>{" "}
+                              {meetup.participants.join(", ")}
+                            </Card.Text>
+                          </div>
+                        )}
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                );
+              })}
+            </>
             )}
           </Row>
         </>
