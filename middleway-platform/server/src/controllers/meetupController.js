@@ -9,16 +9,27 @@ const User = require('../models/userModel');
 const createMeetup = asyncHandler(async (req, res) => {
   const { title, description, location, scheduledDate, participants } = req.body;
 
-  // Find user IDs for all participant emails
-  const resolvedParticipants = await Promise.all(
-    participants.map(async (email) => {
-      const user = await User.findOne({ email });
-      if (!user) {
-        throw new Error(`User with email ${email} not found`);
-      }
-      return { user: user._id };
-    })
-  );
+  if (!participants || participants.length < 1) {
+    res.status(400);
+    throw new Error("At least one participant is required.");
+  }
+
+  //  Lookup users by email
+  const users = await User.find({ email: { $in: participants } });
+
+  //  If any email is not found, reject
+  if (users.length !== participants.length) {
+    const foundEmails = users.map((u) => u.email);
+    const missing = participants.filter((email) => !foundEmails.includes(email));
+    res.status(400);
+    throw new Error(`These participant emails are not registered: ${missing.join(", ")}`);
+  }
+
+  // ✅ Convert to participant entries
+  const resolvedParticipants = users.map((user) => ({
+    user: user._id,
+    status: "pending",
+  }));
 
   const meetup = new Meetup({
     title,
@@ -32,7 +43,6 @@ const createMeetup = asyncHandler(async (req, res) => {
   const created = await meetup.save();
   res.status(201).json(created);
 });
-
 
 // @desc    Get all meetups
 // @route   GET /api/meetups
