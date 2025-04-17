@@ -9,7 +9,6 @@ const MeetupFormPage = () => {
   const { userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
@@ -17,53 +16,76 @@ const MeetupFormPage = () => {
   const [participant2, setParticipant2] = useState("");
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
+  const [address1Suggestions, setAddress1Suggestions] = useState([]);
+  const [address2Suggestions, setAddress2Suggestions] = useState([]);
+  const [coords1, setCoords1] = useState(null);
+  const [coords2, setCoords2] = useState(null);
 
   const [location, setLocation] = useState({
     name: "",
     address: "",
-    coordinates: { lat: 42.3398, lng: -71.0892 }, // Default to NEU
+    coordinates: { lat: 42.3398, lng: -71.0892 },
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const geocodeLocation = async (address) => {
-    const encoded = encodeURIComponent(address);
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.length > 0) {
-      return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
-      };
-    }
-    return null;
-  };
-
-  const findMidpoint = async () => {
-    if (!address1 || !address2) {
-      alert("Please enter both addresses");
+  const fetchSuggestions = async (query, setSuggestions) => {
+    if (!query.trim()) {
+      setSuggestions([]);
       return;
     }
 
-    const location1 = await geocodeLocation(address1);
-    const location2 = await geocodeLocation(address2);
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+    try{
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'MiddleWayApp/1.0 (your@email.com)',
+        }
+      });
+      
+    const data = await res.json();
 
-    if (!location1 || !location2) {
-      alert("One or both addresses could not be located. Please check.");
+    const suggestions = data.map((item) => ({
+      name: item.display_name,
+      coordinates: {
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon),
+      },
+    }));
+
+    setSuggestions(suggestions);
+  } catch (err) {
+    console.error("Failed to fetch suggestions", err);
+  }
+  };
+
+  const handleSelectAddress1 = (suggestion) => {
+    setAddress1(suggestion.name);
+    setCoords1(suggestion.coordinates);
+    setAddress1Suggestions([]);
+  };
+
+  const handleSelectAddress2 = (suggestion) => {
+    setAddress2(suggestion.name);
+    setCoords2(suggestion.coordinates);
+    setAddress2Suggestions([]);
+  };
+
+  const findMidpoint = () => {
+    if (!coords1 || !coords2) {
+      alert("Please select both addresses from the dropdown first.");
       return;
     }
 
     const midpoint = {
-      lat: (location1.lat + location2.lat) / 2,
-      lng: (location1.lng + location2.lng) / 2,
+      lat: (coords1.lat + coords2.lat) / 2,
+      lng: (coords1.lng + coords2.lng) / 2,
     };
 
     setLocation({
       name: "Suggested Midpoint",
-      address: "Midpoint between provided addresses",
+      address: "Midpoint between selected addresses",
       coordinates: midpoint,
     });
   };
@@ -143,7 +165,6 @@ const MeetupFormPage = () => {
             />
           </Form.Group>
 
-          {/* Separate participant emails */}
           <Form.Group className="mb-3">
             <Form.Label>Participant 1 Email</Form.Label>
             <Form.Control
@@ -166,15 +187,34 @@ const MeetupFormPage = () => {
             />
           </Form.Group>
 
-          {/* Manual address input */}
           <Form.Group className="mb-3">
             <Form.Label>Address for User 1</Form.Label>
             <Form.Control
               type="text"
               placeholder="Enter address for user 1"
               value={address1}
-              onChange={(e) => setAddress1(e.target.value)}
+              onChange={(e) => {
+                setAddress1(e.target.value);
+                fetchSuggestions(e.target.value, setAddress1Suggestions);
+              }}
             />
+            {address1Suggestions.length > 0 && (
+              <Card className="mt-1">
+                <Card.Body>
+                  <ul style={{ listStyle: "none", paddingLeft: 0, marginBottom: 0 }}>
+                    {address1Suggestions.map((sug, idx) => (
+                      <li
+                        key={idx}
+                        style={{ cursor: "pointer", padding: "6px 0" }}
+                        onClick={() => handleSelectAddress1(sug)}
+                      >
+                        {sug.name}
+                      </li>
+                    ))}
+                  </ul>
+                </Card.Body>
+              </Card>
+            )}
           </Form.Group>
 
           <Form.Group className="mb-3">
@@ -183,15 +223,33 @@ const MeetupFormPage = () => {
               type="text"
               placeholder="Enter address for user 2"
               value={address2}
-              onChange={(e) => setAddress2(e.target.value)}
+              onChange={(e) => {
+                setAddress2(e.target.value);
+                fetchSuggestions(e.target.value, setAddress2Suggestions);
+              }}
             />
+            {address2Suggestions.length > 0 && (
+              <Card className="mt-1">
+                <Card.Body>
+                  <ul style={{ listStyle: "none", paddingLeft: 0, marginBottom: 0 }}>
+                    {address2Suggestions.map((sug, idx) => (
+                      <li
+                        key={idx}
+                        style={{ cursor: "pointer", padding: "6px 0" }}
+                        onClick={() => handleSelectAddress2(sug)}
+                      >
+                        {sug.name}
+                      </li>
+                    ))}
+                  </ul>
+                </Card.Body>
+              </Card>
+            )}
           </Form.Group>
 
           <Button variant="info" className="mb-3" onClick={findMidpoint}>
             Find Midpoint
           </Button>
-
-         
 
           <div className="mb-4">
             <Map

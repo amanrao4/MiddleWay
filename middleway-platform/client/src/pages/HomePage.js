@@ -11,47 +11,24 @@ const HomePage = () => {
   const [meetups, setMeetups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [otherUsers, setOtherUsers] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        if (!userInfo?.token) return; //  Guard against null userInfo
-  
-        const config = {
-          headers: {
-            Authorization: `Bearer ${userInfo.token}`,
-          },
-        };
-  
-        const { data } = await axios.get(
-          `${process.env.REACT_APP_API_URL}/users/all`,
-          config
-        );
-  
-        setOtherUsers(data);
-      } catch (error) {
-        console.error("Failed to load users", error);
-      }
-    };
-  
     const fetchMeetups = async () => {
       try {
         if (!userInfo?.token) return;
-  
+
         setLoading(true);
         const config = {
           headers: {
             Authorization: `Bearer ${userInfo.token}`,
           },
         };
-  
+
         const { data } = await axios.get(
           `${process.env.REACT_APP_API_URL}/meetups`,
           config
         );
-  
+
         setMeetups(data);
         setLoading(false);
       } catch (error) {
@@ -59,13 +36,11 @@ const HomePage = () => {
         setLoading(false);
       }
     };
-  
+
     if (userInfo) {
-      fetchUsers();     //  Only fetch users if logged in
-      fetchMeetups();   //  Same here
+      fetchMeetups();
     }
-  }, [userInfo]); // This effect now waits for userInfo to be loaded
-  
+  }, [userInfo]);
 
   return (
     <>
@@ -83,51 +58,12 @@ const HomePage = () => {
         <>
           <Row className="mb-4">
             <Col className="text-right">
-              <Link to="/meetup">
-                <Button
-                  variant="success"
-                  onClick={() => {
-                    navigate("/create-meetup", { state: { selectedUsers } });
-                  }}
-                >
-                  Create New Meetup
-                </Button>
-              </Link>
-            </Col>
-          </Row>
-          <Row className="mb-4">
-            <Col>
-              <h4>Select Users to Meet With</h4>
-              {otherUsers.length === 0 ? (
-                <p>No other users found.</p>
-              ) : (
-                <ul className="list-group">
-                  {otherUsers.map((user) => (
-                    <li
-                      key={user._id}
-                      className="list-group-item d-flex justify-content-between align-items-center"
-                    >
-                      {user.name} ({user.email})
-                      <Button
-                        variant={
-                          selectedUsers.includes(user._id)
-                            ? "danger"
-                            : "primary"
-                        }
-                        onClick={() =>
-                          setSelectedUsers((prev) =>
-                            prev.includes(user._id)
-                              ? prev.filter((id) => id !== user._id)
-                              : [...prev, user._id]
-                          )
-                        }
-                      >
-                        {selectedUsers.includes(user._id) ? "Remove" : "Select"}
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <Button
+                variant="success"
+                onClick={() => navigate("/meetup")}
+              >
+                Create New Meetup
+              </Button>
             </Col>
           </Row>
 
