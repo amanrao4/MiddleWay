@@ -13,6 +13,16 @@ function debounce(func, delay) {
   };
 }
 
+const restaurantOptions = [
+  "Central Bites Cafe",
+  "Flour Bakery",
+  "Tatte Bakery",
+  "City Grille",
+  "Sunset Diner",
+  "Back Bay Bites",
+  "Common Grounds Cafe"
+];
+
 const MeetupFormPage = () => {
   const { userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -61,7 +71,7 @@ const MeetupFormPage = () => {
       setSuggestions(suggestions);
     } catch (err) {
       console.error("❌ Failed to fetch suggestions", err);
-      setSuggestions([]); // Optional: clear if it fails
+      setSuggestions([]);
     }
   };
 
@@ -113,12 +123,17 @@ const MeetupFormPage = () => {
 
       const participants = [participant1.trim(), participant2.trim()].filter(Boolean);
 
+      const randomRestaurant = restaurantOptions[Math.floor(Math.random() * restaurantOptions.length)];
+
       const { data } = await axios.post(
         `${process.env.REACT_APP_API_URL}/meetups`,
         {
           title,
           description,
-          location,
+          location: {
+            ...location,
+            restaurant: randomRestaurant
+          },
           scheduledDate,
           participants,
         },
