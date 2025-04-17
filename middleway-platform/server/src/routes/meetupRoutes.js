@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   createMeetup,
   getMeetups,
@@ -7,8 +8,12 @@ const {
   updateMeetup,
   deleteMeetup,
   updateParticipantStatus,
+  getMeetupsForModerators, 
 } = require("../controllers/meetupController");
-const { protect } = require("../middleware/authMiddleware");
+
+const { protect, moderatorOnly } = require("../middleware/authMiddleware");
+
+router.get("/moderator", protect, moderatorOnly, getMeetupsForModerators);
 
 router.route("/").post(protect, createMeetup).get(protect, getMeetups);
 

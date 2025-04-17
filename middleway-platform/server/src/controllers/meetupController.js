@@ -132,6 +132,15 @@ const deleteMeetup = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+const getMeetupsForModerators = async (req, res) => {
+  try {
+    const meetups = await Meetup.find({}).populate("creator", "name email");
+    res.json(meetups);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch meetups" });
+  }
+};
+
 
 // @desc    Update participant status
 // @route   PUT /api/meetups/:id/participants/:userId
@@ -172,4 +181,5 @@ module.exports = {
   updateMeetup,
   deleteMeetup,
   updateParticipantStatus,
+  getMeetupsForModerators,
 };
