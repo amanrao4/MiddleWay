@@ -9,102 +9,103 @@ const ContactPage = () => {
 
     const submitHandler = (e) => {
         e.preventDefault();
-        // In a real app, we would send this data to a backend
         console.log({ name, email, message });
         setSubmitted(true);
-        // Reset form
         setName('');
         setEmail('');
         setMessage('');
 
-        // Hide success message after 5 seconds
         setTimeout(() => {
             setSubmitted(false);
         }, 5000);
     };
 
     return (
-        <Row className="my-5">
-            <Col md={6}>
-                <h1>Contact Us</h1>
-                <p className="lead">
-                    Have questions or feedback? We'd love to hear from you!
-                </p>
+        <div style={{ backgroundColor: '#E8F5E9', minHeight: '100vh', padding: '2rem' }}>
+            <Row className="my-4">
+                <Col md={6}>
+                    <h1 style={{ color: '#004D40' }}>Contact Us</h1>
+                    <p className="lead" style={{ color: '#333' }}>
+                        Have questions or feedback? We'd love to hear from you!
+                    </p>
 
-                {submitted && (
-                    <Alert variant="success">
-                        Thank you for your message! We'll get back to you soon.
-                    </Alert>
-                )}
+                    {submitted && (
+                        <Alert variant="success">
+                            Thank you for your message! We'll get back to you soon.
+                        </Alert>
+                    )}
 
-                <Form onSubmit={submitHandler}>
-                    <Form.Group className="mb-3" controlId="name">
-                        <Form.Label>Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Enter your name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
+                    <Card className="p-4 shadow-sm border-0" style={{ backgroundColor: '#ffffff' }}>
+                        <Form onSubmit={submitHandler}>
+                            <Form.Group className="mb-3" controlId="name">
+                                <Form.Label style={{ color: '#004D40' }}>Name</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter your name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="email">
-                        <Form.Label>Email Address</Form.Label>
-                        <Form.Control
-                            type="email"
-                            placeholder="Enter your email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
+                            <Form.Group className="mb-3" controlId="email">
+                                <Form.Label style={{ color: '#004D40' }}>Email Address</Form.Label>
+                                <Form.Control
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="message">
-                        <Form.Label>Message</Form.Label>
-                        <Form.Control
-                            as="textarea"
-                            rows={5}
-                            placeholder="Enter your message"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            required
-                        />
-                    </Form.Group>
+                            <Form.Group className="mb-3" controlId="message">
+                                <Form.Label style={{ color: '#004D40' }}>Message</Form.Label>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={5}
+                                    placeholder="Enter your message"
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    required
+                                />
+                            </Form.Group>
 
-                    <Button variant="primary" type="submit">
-                        Send Message
-                    </Button>
-                </Form>
-            </Col>
+                            <Button variant="primary" type="submit" style={{ backgroundColor: '#82B1FF', border: 'none', color: '#004D40' }}>
+                                Send Message
+                            </Button>
+                        </Form>
+                    </Card>
+                </Col>
 
-            <Col md={6}>
-                <Card className="mt-4 mt-md-0">
-                    <Card.Body>
-                        <h2>Visit Us</h2>
-                        <p>
-                            Northeastern University<br />
-                            360 Huntington Ave<br />
-                            Boston, MA 02115
-                        </p>
+                <Col md={6} className="mt-4 mt-md-0">
+                    <Card className="p-4 shadow-sm border-0" style={{ backgroundColor: '#ffffff', color: '#004D40' }}>
+                        <Card.Body>
+                            <h2 className="h5" style={{ color: '#82B1FF' }}>Visit Us</h2>
+                            <p className="mb-4">
+                                Northeastern University<br />
+                                360 Huntington Ave<br />
+                                Boston, MA 02115
+                            </p>
 
-                        <h2>Email</h2>
-                        <p>
-                            <a href="mailto:contact@middleway.northeastern.edu">
-                                contact@middleway.northeastern.edu
-                            </a>
-                        </p>
+                            <h2 className="h5" style={{ color: '#82B1FF' }}>Email</h2>
+                            <p>
+                                <a href="mailto:contact@middleway.northeastern.edu" className="text-decoration-none" style={{ color: '#004D40' }}>
+                                    contact@middleway.northeastern.edu
+                                </a>
+                            </p>
 
-                        <h2>Social Media</h2>
-                        <p>
-                            <a href="#" className="me-3">Facebook</a>
-                            <a href="#" className="me-3">Twitter</a>
-                            <a href="#" className="me-3">Instagram</a>
-                        </p>
-                    </Card.Body>
-                </Card>
-            </Col>
-        </Row>
+                            <h2 className="h5" style={{ color: '#82B1FF' }}>Social Media</h2>
+                            <p>
+                                <a href="#" className="me-3 text-decoration-none" style={{ color: '#004D40' }}>Facebook</a>
+                                <a href="#" className="me-3 text-decoration-none" style={{ color: '#004D40' }}>Twitter</a>
+                                <a href="#" className="me-3 text-decoration-none" style={{ color: '#004D40' }}>Instagram</a>
+                            </p>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </div>
     );
 };
 
