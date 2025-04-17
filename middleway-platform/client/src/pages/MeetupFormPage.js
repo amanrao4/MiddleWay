@@ -85,9 +85,10 @@ const MeetupFormPage = () => {
 
     setLocation({
       name: "Suggested Midpoint",
-      address: "Midpoint between selected addresses",
+      address: `${address1} ↔ ${address2}`,
       coordinates: midpoint,
     });
+    
   };
 
   const submitHandler = async (e) => {
