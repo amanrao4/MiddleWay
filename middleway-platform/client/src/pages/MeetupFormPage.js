@@ -1,198 +1,35 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useContext } from "react";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import Map from "../components/Map";
-import { useLocation } from "react-router-dom";
 
 const MeetupFormPage = () => {
-  const [suggestedCoordinates, setSuggestedCoordinates] = useState(null);
-  const [participantDetails, setParticipantDetails] = useState([]);
-  const routeLocation = useLocation();
-  const selectedUsers = routeLocation.state?.selectedUsers || [];
   const { userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [scheduledDate, setScheduledDate] = useState("");
-  const [participants, setParticipants] = useState("");
+  const [participant1, setParticipant1] = useState("");
+  const [participant2, setParticipant2] = useState("");
+  const [address1, setAddress1] = useState("");
+  const [address2, setAddress2] = useState("");
+
   const [location, setLocation] = useState({
     name: "",
     address: "",
     coordinates: { lat: 42.3398, lng: -71.0892 }, // Default to NEU
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const searchTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    const fetchParticipantDetails = async () => {
-      try {
-        const config = {
-          headers: {
-            Authorization: `Bearer ${userInfo.token}`,
-          },
-        };
-
-        const allParticipantIds = [...selectedUsers, userInfo._id];
-        console.log("🔍 Sending user IDs to backend:", allParticipantIds);
-  
-        const { data } = await axios.post(
-          `${process.env.REACT_APP_API_URL}/users/lookup`,
-          { userIds: allParticipantIds },
-          config
-        );
-  
-        console.log("✅ Participant details from backend:", data);
-        setParticipantDetails(data); // data = array of user profiles
-      } catch (error) {
-        console.error("Failed to fetch participant details:", error);
-      }
-    };
-  
-    if (selectedUsers.length > 0) {
-      fetchParticipantDetails();
-    }
-  }, []);
-  
-
-  useEffect(() => {
-    const geocodeLocation = async (address) => {
-      const encoded = encodeURIComponent(address);
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}`;
-  
-      const response = await fetch(url);
-      const data = await response.json();
-  
-      if (data.length > 0) {
-        return {
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon),
-        };
-      }
-  
-      return null;
-    };
-  
-    const suggestLocation = async () => {
-      if (participantDetails.length === 0) return;
-  
-      const coords = [];
-  
-      for (let person of participantDetails) {
-        if (person.location) {
-          const geo = await geocodeLocation(person.location);
-          console.log("📍 Geocoded:", person.name, person.location, geo);
-          if (geo) coords.push(geo);
-        }
-      }
-  
-      if (coords.length === 0) return;
-  
-      const avgLat = coords.reduce((sum, c) => sum + c.lat, 0) / coords.length;
-      const avgLng = coords.reduce((sum, c) => sum + c.lng, 0) / coords.length;
-  
-      console.log("📌 Suggested coordinates:", avgLat, avgLng);
-      setSuggestedCoordinates({ lat: avgLat, lng: avgLng });
-  
-      setLocation((prev) => ({
-        ...prev,
-        coordinates: { lat: avgLat, lng: avgLng },
-      }));
-    };
-  
-    suggestLocation();
-  }, [participantDetails]);
-  
-
-  useEffect(() => {
-    if (!userInfo) {
-      navigate("/login");
-    }
-  }, [userInfo, navigate]);
-
-  // Handle location search
-  useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setSearchResults([]);
-      return;
-    }
-
-    useEffect(() => {
-      const suggestLocation = async () => {
-        if (participantDetails.length === 0) return;
-
-        const coords = [];
-
-        for (let person of participantDetails) {
-          if (person.location) {
-            const geo = await geocodeLocation(person.location);
-            if (geo) coords.push(geo);
-          }
-        }
-
-        if (coords.length === 0) return;
-
-        // Average coordinates
-        const avgLat =
-          coords.reduce((sum, c) => sum + c.lat, 0) / coords.length;
-        const avgLng =
-          coords.reduce((sum, c) => sum + c.lng, 0) / coords.length;
-
-        setSuggestedCoordinates({ lat: avgLat, lng: avgLng });
-
-        // Optionally auto-fill
-        setLocation((prev) => ({
-          ...prev,
-          coordinates: { lat: avgLat, lng: avgLng },
-        }));
-      };
-
-      suggestLocation();
-    }, [participantDetails]);
-
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(async () => {
-      try {
-        // We're using OpenStreetMap's Nominatim API for geocoding
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            searchQuery
-          )}`
-        );
-        const data = await response.json();
-
-        setSearchResults(
-          data.map((item) => ({
-            name: item.display_name,
-            coordinates: {
-              lat: parseFloat(item.lat),
-              lng: parseFloat(item.lon),
-            },
-          }))
-        );
-      } catch (error) {
-        console.error("Error searching locations:", error);
-      }
-    }, 500);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [searchQuery]);
 
   const geocodeLocation = async (address) => {
     const encoded = encodeURIComponent(address);
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encoded}`;
-
     const response = await fetch(url);
     const data = await response.json();
 
@@ -202,26 +39,41 @@ const MeetupFormPage = () => {
         lng: parseFloat(data[0].lon),
       };
     }
-
     return null;
   };
 
-  const selectLocation = (result) => {
+  const findMidpoint = async () => {
+    if (!address1 || !address2) {
+      alert("Please enter both addresses");
+      return;
+    }
+
+    const location1 = await geocodeLocation(address1);
+    const location2 = await geocodeLocation(address2);
+
+    if (!location1 || !location2) {
+      alert("One or both addresses could not be located. Please check.");
+      return;
+    }
+
+    const midpoint = {
+      lat: (location1.lat + location2.lat) / 2,
+      lng: (location1.lng + location2.lng) / 2,
+    };
+
     setLocation({
-      name: result.name,
-      address: result.name,
-      coordinates: result.coordinates,
+      name: "Suggested Midpoint",
+      address: "Midpoint between provided addresses",
+      coordinates: midpoint,
     });
-    setSearchResults([]);
-    setSearchQuery("");
   };
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setError(null);
 
     try {
       setLoading(true);
-      setError(null);
 
       const config = {
         headers: {
@@ -230,33 +82,25 @@ const MeetupFormPage = () => {
         },
       };
 
-      // Parse participant emails into an array
-      const participantList = participants
-        .split(",")
-        .map((email) => email.trim())
-        .filter((email) => email !== "");
+      const participants = [participant1.trim(), participant2.trim()].filter(Boolean);
 
-      await axios.post(
+      const { data } = await axios.post(
         `${process.env.REACT_APP_API_URL}/meetups`,
         {
           title,
           description,
           location,
           scheduledDate,
-          participants: participantList,
+          participants,
         },
         config
       );
 
-      setLoading(false);
+      console.log("✅ Meetup created:", data);
       navigate("/");
     } catch (error) {
+      setError(error.response?.data?.message || error.message);
       setLoading(false);
-      setError(
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : error.message
-      );
     }
   };
 
@@ -283,7 +127,7 @@ const MeetupFormPage = () => {
             <Form.Control
               as="textarea"
               rows={3}
-              placeholder="Enter meetup description"
+              placeholder="Enter description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -299,73 +143,72 @@ const MeetupFormPage = () => {
             />
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="participants">
-            <Form.Label>Participants (comma-separated emails)</Form.Label>
+          {/* Separate participant emails */}
+          <Form.Group className="mb-3">
+            <Form.Label>Participant 1 Email</Form.Label>
             <Form.Control
-              type="text"
-              placeholder="friend1@northeastern.edu, friend2@northeastern.edu"
-              value={participants}
-              onChange={(e) => setParticipants(e.target.value)}
+              type="email"
+              placeholder="firstuser@example.com"
+              value={participant1}
+              onChange={(e) => setParticipant1(e.target.value)}
+              required
             />
           </Form.Group>
 
-          <Form.Group className="mb-3" controlId="location">
-            <Form.Label>Location</Form.Label>
+          <Form.Group className="mb-3">
+            <Form.Label>Participant 2 Email</Form.Label>
+            <Form.Control
+              type="email"
+              placeholder="seconduser@example.com"
+              value={participant2}
+              onChange={(e) => setParticipant2(e.target.value)}
+              required
+            />
+          </Form.Group>
+
+          {/* Manual address input */}
+          <Form.Group className="mb-3">
+            <Form.Label>Address for User 1</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Search for a location"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Enter address for user 1"
+              value={address1}
+              onChange={(e) => setAddress1(e.target.value)}
             />
-            {suggestedCoordinates && (
-              <p className="text-success">
-                Suggested meetup near: {suggestedCoordinates.lat.toFixed(4)},{" "}
-                {suggestedCoordinates.lng.toFixed(4)}
-              </p>
-            )}
-
-            {searchResults.length > 0 && (
-              <Card className="mt-2">
-                <Card.Body>
-                  <Card.Title>Search Results</Card.Title>
-                  <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-                    {searchResults.map((result, index) => (
-                      <div
-                        key={index}
-                        className="py-2 border-bottom"
-                        style={{ cursor: "pointer" }}
-                        onClick={() => selectLocation(result)}
-                      >
-                        {result.name}
-                      </div>
-                    ))}
-                  </div>
-                </Card.Body>
-              </Card>
-            )}
-
-            {location.name && (
-              <p className="mt-2">
-                <strong>Selected:</strong> {location.name}
-              </p>
-            )}
           </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Address for User 2</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter address for user 2"
+              value={address2}
+              onChange={(e) => setAddress2(e.target.value)}
+            />
+          </Form.Group>
+
+          <Button variant="info" className="mb-3" onClick={findMidpoint}>
+            Find Midpoint
+          </Button>
+
+         
 
           <div className="mb-4">
             <Map
+              key={`${location.coordinates.lat}-${location.coordinates.lng}`}
               center={[location.coordinates.lat, location.coordinates.lng]}
               markers={[
                 {
                   lat: location.coordinates.lat,
                   lng: location.coordinates.lng,
-                  name: location.name || "Selected Location",
+                  name: location.name || "Suggested Location",
                 },
               ]}
               zoom={15}
             />
           </div>
 
-          <Button variant="primary" type="submit" disabled={loading}>
+          <Button type="submit" variant="primary" disabled={loading}>
             {loading ? "Creating..." : "Create Meetup"}
           </Button>
         </Form>

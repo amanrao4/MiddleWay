@@ -17,41 +17,41 @@ const HomePage = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        if (!userInfo?.token) return; //  Guard against null userInfo
+  
         const config = {
           headers: {
             Authorization: `Bearer ${userInfo.token}`,
           },
         };
-
+  
         const { data } = await axios.get(
           `${process.env.REACT_APP_API_URL}/users/all`,
           config
         );
-
+  
         setOtherUsers(data);
       } catch (error) {
         console.error("Failed to load users", error);
       }
     };
-
-    fetchUsers();
-
+  
     const fetchMeetups = async () => {
-      if (!userInfo) return;
-
       try {
+        if (!userInfo?.token) return;
+  
         setLoading(true);
         const config = {
           headers: {
             Authorization: `Bearer ${userInfo.token}`,
           },
         };
-
+  
         const { data } = await axios.get(
           `${process.env.REACT_APP_API_URL}/meetups`,
           config
         );
-
+  
         setMeetups(data);
         setLoading(false);
       } catch (error) {
@@ -59,9 +59,13 @@ const HomePage = () => {
         setLoading(false);
       }
     };
-
-    fetchMeetups();
-  }, [userInfo]);
+  
+    if (userInfo) {
+      fetchUsers();     //  Only fetch users if logged in
+      fetchMeetups();   //  Same here
+    }
+  }, [userInfo]); // This effect now waits for userInfo to be loaded
+  
 
   return (
     <>
